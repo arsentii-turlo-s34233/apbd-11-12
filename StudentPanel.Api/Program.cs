@@ -52,8 +52,3 @@ app.MapGet("/api/students/{id:int}/courses", (int id, InMemoryStore store) =>
 });
 
 app.Run("http://localhost:5001");
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

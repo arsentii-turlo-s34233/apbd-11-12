@@ -9,15 +9,28 @@
         <LoadingPanel IsLoading="@_loading" />
         <ApiError Message="@_error" />
 
-        @if (_student is not null)
+        @if (_student is null && !_loading && _error is null)
+        {
+            <h2>Student not found</h2>
+            <p>No student with ID @Id exists.</p>
+            <a href="/students">Back to list</a>
+        }
+        else if (_student is not null)
         {
             <h1>@_student.FirstName @_student.LastName</h1>
+
             <p><strong>Index:</strong> @_student.IndexNumber</p>
+
             <p>
                 <strong>Email:</strong> @_student.Email
                 <button class="btn btn-secondary" @onclick="CopyEmailAsync">Copy email</button>
-                @if (_copied) { <small> Copied!</small> }
+
+                @if (_copied)
+                {
+                    <small> Copied!</small>
+                }
             </p>
+
             <p><strong>Semester:</strong> @_student.Semester</p>
 
             <button class="btn @(ObservedState.IsObserved(Id) ? "btn-danger" : "btn-secondary")"
@@ -26,13 +39,16 @@
             </button>
 
             <hr />
+
             <h2>Assigned courses</h2>
+
             <DataTable Items="_courses" TItem="StudentCourseAssignment">
                 <HeaderContent>
                     <th>Course</th>
                     <th>ECTS</th>
                     <th>Assigned at</th>
                 </HeaderContent>
+
                 <RowContent Context="c">
                     <td>@c.Course?.Name</td>
                     <td>@c.Course?.Ects</td>
@@ -41,24 +57,32 @@
             </DataTable>
 
             <hr />
+
             <h2>Assign a course</h2>
+
             <EditForm Model="_assignRequest" OnValidSubmit="AssignCourseAsync">
                 <DataAnnotationsValidator />
+
                 <div class="form-group">
                     <label>Course</label>
+
                     <InputSelect @bind-Value="_assignRequest.CourseId">
                         <option value="0">-- select --</option>
+
                         @foreach (var c in _availableCourses)
                         {
                             <option value="@c.Id">@c.Name (@c.Ects ECTS)</option>
                         }
                     </InputSelect>
+
                     <ValidationMessage For="() => _assignRequest.CourseId" class="validation-message" />
                 </div>
+
                 <button type="submit" class="btn btn-primary">Assign</button>
             </EditForm>
         }
     </ChildContent>
+
     <ErrorContent Context="ex">
         <p class="api-error">Details failed to load: @ex.Message</p>
     </ErrorContent>
@@ -71,9 +95,11 @@
     private List<StudentCourseAssignment> _courses = new();
     private List<CourseDto> _availableCourses = new();
     private AssignCourseRequest _assignRequest = new();
+
     private bool _loading = true;
     private string? _error;
     private bool _copied;
+    private bool _jsReady;
 
     protected override async Task OnInitializedAsync()
     {
@@ -84,10 +110,17 @@
     {
         _loading = true;
         _error = null;
+        _student = null;
+        _courses = new();
+
         try
         {
             _student = await Api.GetStudentAsync(Id);
-            _courses = await Api.GetStudentCoursesAsync(Id);
+
+            if (_student is not null)
+            {
+                _courses = await Api.GetStudentCoursesAsync(Id);
+            }
         }
         catch (Exception ex)
         {
@@ -99,31 +132,48 @@
         }
     }
 
-    private bool _jsReady;
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
+        {
             _jsReady = true;
+        }
 
-        await Task.CompletedTask; // module is lazy-loaded on first use
+        return Task.CompletedTask;
     }
 
     private async Task CopyEmailAsync()
     {
-        if (_student is null) return;
+        if (_student is null)
+        {
+            return;
+        }
+
         await Clipboard.CopyAsync(_student.Email);
+
         _copied = true;
         StateHasChanged();
+
         await Task.Delay(2000);
+
         _copied = false;
         StateHasChanged();
     }
 
     private async Task AssignCourseAsync()
     {
-        await Api.AssignCourseAsync(Id, _assignRequest.CourseId);
-        _courses = await Api.GetStudentCoursesAsync(Id);
-        _assignRequest = new();
+        if (_student is null)
+        {
+            return;
+        }
+
+        var success = await Api.AssignCourseAsync(Id, _assignRequest.CourseId);
+
+        if (success)
+        {
+            _courses = await Api.GetStudentCoursesAsync(Id);
+            _assignRequest = new();
+        }
     }
 
     public async ValueTask DisposeAsync()
