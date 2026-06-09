@@ -1,0 +1,31 @@
+﻿@using StudentPanel.Client.Services
+@inherits LayoutComponentBase
+@inject ObservedStudentsState ObservedState
+@implements IDisposable
+<div class="page">
+    <nav class="sidebar">
+        <div class="nav-brand">Student Panel</div>
+        <NavLink href="/students" Match="NavLinkMatch.Prefix">Students</NavLink>
+        <NavLink href="/students/create">New Student</NavLink>
+        <NavLink href="/observed">
+            Observed
+            @if (ObservedState.Count > 0)
+            {
+                <span class="badge">
+                    @ObservedState.Count
+                </span>
+            }
+        </NavLink>
+    </nav>
+    <main>
+        @Body
+    </main>
+</div>
+@code {
+
+    protected override void OnInitialized() =>
+        ObservedState.OnChange += StateHasChanged;
+
+    public void Dispose() => ObservedState.OnChange -= StateHasChanged;
+
+}
