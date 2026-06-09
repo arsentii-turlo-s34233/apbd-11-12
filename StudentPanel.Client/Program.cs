@@ -10,5 +10,6 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddHttpClient<StudentsApiClient>(client => client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"]!));
 
 builder.Services.AddScoped<ObservedStudentsState>();
+builder.Services.AddScoped<ClipboardService>();
 
 await builder.Build().RunAsync();
