@@ -1,0 +1,15 @@
+@if (IsLoading)
+{
+    <div class="loading-panel">
+        <span class="spinner">
+        </span>
+        <span>Loading...</span>
+    </div>
+    
+}
+@code {
+
+    [Parameter]
+    public bool IsLoading { get; set; }
+
+}
