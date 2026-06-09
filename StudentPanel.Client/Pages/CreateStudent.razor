@@ -1,0 +1,78 @@
+@page "/students/create"
+@using System.ComponentModel.DataAnnotations
+@inject StudentsApiClient Api
+@inject NavigationManager Nav
+
+<h1>New student</h1>
+
+<EditForm Model="_model" OnValidSubmit="SubmitAsync">
+    <DataAnnotationsValidator />
+    <ValidationSummary class="api-error" />
+
+    <div class="form-group">
+        <label>Index number</label>
+        <InputText @bind-Value="_model.IndexNumber" />
+        <ValidationMessage For="() => _model.IndexNumber" class="validation-message" />
+    </div>
+
+    <div class="form-group">
+        <label>First name</label>
+        <InputText @bind-Value="_model.FirstName" />
+        <ValidationMessage For="() => _model.FirstName" class="validation-message" />
+    </div>
+
+    <div class="form-group">
+        <label>Last name</label>
+        <InputText @bind-Value="_model.LastName" />
+        <ValidationMessage For="() => _model.LastName" class="validation-message" />
+    </div>
+
+    <div class="form-group">
+        <label>Email</label>
+        <InputText @bind-Value="_model.Email" />
+        <ValidationMessage For="() => _model.Email" class="validation-message" />
+    </div>
+
+    <div class="form-group">
+        <label>Semester (1–8)</label>
+        <InputNumber @bind-Value="_model.Semester" />
+        <ValidationMessage For="() => _model.Semester" class="validation-message" />
+    </div>
+
+    <button type="submit" class="btn btn-primary" disabled="@_saving">
+        @(_saving ? "Saving…" : "Create student")
+    </button>
+</EditForm>
+
+@code {
+    private CreateStudentModel _model = new();
+    private bool _saving;
+
+    private async Task SubmitAsync()
+    {
+        _saving = true;
+        var dto = new StudentDto
+        {
+            IndexNumber = _model.IndexNumber,
+            FirstName = _model.FirstName,
+            LastName = _model.LastName,
+            Email = _model.Email,
+            Semester = _model.Semester
+        };
+
+        var created = await Api.CreateStudentAsync(dto);
+        if (created is not null)
+            Nav.NavigateTo($"/students/{created.Id}");
+        else
+            _saving = false;
+    }
+
+    private class CreateStudentModel
+    {
+        [Required] public string IndexNumber { get; set; } = "";
+        [Required] public string FirstName { get; set; } = "";
+        [Required] public string LastName { get; set; } = "";
+        [Required, EmailAddress] public string Email { get; set; } = "";
+        [Range(1, 8, ErrorMessage = "Semester must be between 1 and 8.")] public int Semester { get; set; } = 1;
+    }
+}

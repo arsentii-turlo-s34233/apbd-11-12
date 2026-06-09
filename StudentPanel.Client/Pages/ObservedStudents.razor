@@ -1,0 +1,47 @@
+@page "/observed"
+@inject ObservedStudentsState ObservedState
+@inject ClipboardService Clipboard
+@implements IDisposable
+
+<h1>Observed students (@ObservedState.Count)</h1>
+
+@if (!ObservedState.Observed.Any())
+{
+    <p>No observed students yet. Go to the <a href="/students">student list</a> and click Watch.</p>
+}
+else
+{
+    <DataTable Items="ObservedState.Observed" TItem="StudentDto">
+        <HeaderContent>
+            <th>Index</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Semester</th>
+            <th></th>
+        </HeaderContent>
+        <RowContent Context="s">
+            <td>@s.IndexNumber</td>
+            <td><a href="/students/@s.Id">@s.FirstName @s.LastName</a></td>
+            <td>@s.Email</td>
+            <td>@s.Semester</td>
+            <td>
+                <button class="btn btn-danger" @onclick="() => RemoveAsync(s)">Remove</button>
+            </td>
+        </RowContent>
+    </DataTable>
+}
+
+@code {
+    protected override void OnInitialized()
+        => ObservedState.OnChange += StateHasChanged;
+
+    private async Task RemoveAsync(StudentDto student)
+    {
+        var confirmed = await Clipboard.ConfirmRemoveAsync($"{student.FirstName} {student.LastName}");
+        if (confirmed)
+            ObservedState.Remove(student);
+    }
+
+    public void Dispose()
+        => ObservedState.OnChange -= StateHasChanged;
+}

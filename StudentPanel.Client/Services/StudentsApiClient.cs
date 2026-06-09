@@ -16,7 +16,7 @@ public class StudentsApiClient(HttpClient http)
             ? await response.Content.ReadFromJsonAsync<StudentDto>() :  null;
     }
     
-    public async Task<List<CourseDto>> GetCourseAsync() =>
+    public async Task<List<CourseDto>> GetCoursesAsync() =>
         await http.GetFromJsonAsync<List<CourseDto>>("api/courses") ?? new();
     
     public async Task<List<StudentCourseAssignment>> GetStudentCoursesAsync(int studentId) =>

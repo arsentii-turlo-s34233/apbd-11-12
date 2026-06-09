@@ -1,0 +1,64 @@
+@page "/students"
+@inject StudentsApiClient Api
+@inject ObservedStudentsState ObservedState
+
+<h1>Students</h1>
+
+<a href="/students/create" class="btn btn-primary">+ New student</a>
+
+<ErrorBoundary>
+    <ChildContent>
+        <LoadingPanel IsLoading="@_loading" />
+        <ApiError Message="@_error" />
+
+        @if (!_loading && _error is null)
+        {
+            <DataTable Items="_students" TItem="StudentDto">
+                <HeaderContent>
+                    <th>Index</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Semester</th>
+                    <th>Actions</th>
+                </HeaderContent>
+                <RowContent Context="s">
+                    <td><a href="/students/@s.Id">@s.IndexNumber</a></td>
+                    <td>@s.FirstName @s.LastName</td>
+                    <td>@s.Email</td>
+                    <td>@s.Semester</td>
+                    <td>
+                        <button class="btn @(ObservedState.IsObserved(s.Id) ? "btn-danger" : "btn-secondary")"
+                                @onclick="() => ObservedState.Toggle(s)">
+                            @(ObservedState.IsObserved(s.Id) ? "Unwatch" : "Watch")
+                        </button>
+                    </td>
+                </RowContent>
+            </DataTable>
+        }
+    </ChildContent>
+    <ErrorContent Context="ex">
+        <p class="api-error">Something went wrong: @ex.Message</p>
+    </ErrorContent>
+</ErrorBoundary>
+
+@code {
+    private List<StudentDto> _students = new();
+    private bool _loading = true;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _students = await Api.GetStudentsAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}

@@ -9,7 +9,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddCors(options =>
     options.AddPolicy("BlazorClient", policy =>
-        policy.WithOrigins("http://localhost:5173").AllowAnyHeader().AllowAnyMethod()));
+        policy.WithOrigins("http://localhost:5073").AllowAnyHeader().AllowAnyMethod()));
 
 var app = builder.Build();
 
@@ -33,7 +33,7 @@ app.MapPost("/api/students", (StudentDto dto, InMemoryStore store) =>
 
 app.MapGet("/api/courses", (InMemoryStore store) => Results.Ok(store.Courses));
 
-app.MapPost("/api/students/{id:int/courses", (int id, StudentCourseDto dto, InMemoryStore store) =>
+app.MapPost("/api/students/{id:int}/courses", (int id, StudentCourseDto dto, InMemoryStore store) =>
 {
     dto.StudentId = id;
     dto.AssignedAt = DateTime.UtcNow;
