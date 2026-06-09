@@ -28,11 +28,11 @@ bash cd StudentPanel.Client dotnet run
 
 The Blazor app runs on:
 
-text http://localhost:5173 
+text http://localhost:5073 
 
 Main page:
 
-text http://localhost:5173/students 
+text http://localhost:5073/students 
 
 
 ## Blazor variant
